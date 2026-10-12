@@ -1,3 +1,6 @@
-from charas.slime import Slime
+from datastores.chara_datastore import CharaDataStore
+from battle import Battle
 
-print(Slime().name)
+chara = CharaDataStore()
+
+Battle(chara.inst["スライム"](),chara.inst["ゴブリン"]())
