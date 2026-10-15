@@ -44,22 +44,9 @@ class BaseStats:
                 
     #ステータス名を指定してステータス値を取得
     def get_state(self,param):
-        if param == "hp":
-            return self.at
-        elif param == "max_hp":
-            return self.at
-        elif param == "at":
-            return self.at
-        elif param == "df":
-            return self.df
-        elif param == "mg":
-            return self.mg
-        elif param == "md":
-            return self.md
-        elif param == "sp":
-            return self.sp
-        else:
-            raise Exception("想定外の引数です")
+        stats = {"hp":self.hp,"max_hp":self.max_hp,"at":self.at,
+                 "df":self.df,"mg":self.mg,"md":self.md,"sp":self.sp}
+        return stats[param]
         
 #--能力変化クラス--#
 class BaseModifiers:
@@ -75,38 +62,32 @@ class BaseModifiers:
         
     #ステータス名を指定して倍率を取得
     def get_rate(self,param):
-        if param == "at":
-            return self.rate[self.at]
-        elif param == "df":
-            return self.rate[self.df]
-        elif param == "mg":
-            return self.rate[self.mg]
-        elif param == "md":
-            return self.rate[self.md]
-        elif param == "sp":
-            return self.rate[self.sp]
-        else:
-            raise Exception("想定外の引数です")
+        return self.rate[self.get_modi()]
                 
     #ステータス名を指定して変化値を取得
     def get_modi(self,param):
-        if param == "at":
-            return self.at
-        elif param == "df":
-            return self.df
-        elif param == "mg":
-            return self.mg
-        elif param == "md":
-            return self.md
-        elif param == "sp":
-            return self.sp
-        else:
-            raise Exception("想定外の引数です")
+        stats = {"at":self.at,"df":self.df,"mg":self.mg,"md":self.md,"sp":self.sp}
+        return stats[param]
         
 #--状態変化クラス--#
 class BaseStatusEffects:
     def __init__(self):
         self.effects = []
+        
+    #状態のターン経過
+    def turn_check(self):
+        #解除する状態リスト
+        remove_effects = []
+        #所持している状態のターンを1減少
+        for i in range(len(self.effects)):
+            self.effects[i].reduce_turn()
+            turns_left = self.effects[i].get_turn()
+            #残りターンが0の場合、状態を解除
+            if self.turn is not None and turns_left <= 0:
+                remove_effects.append(self.effects[i])
+                self.effects.remove(self.effects[i])
+        return remove_effects
+                
         
     #指定の状態を持っているかを取得
     def is_enable(self,effect_name):
@@ -117,7 +98,3 @@ class BaseMoves:
     def __init__(self,moves):
         self.moves = moves
 
-        
-    
-    
-        

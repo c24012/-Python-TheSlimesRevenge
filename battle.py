@@ -17,11 +17,11 @@ class Battle:
         #プレイヤーの行動選択へ
         self.select_action()
         #状態チェック
-        
+        #self.status_effects_check()
         #敵の行動実行
         self.enemy_action()
         #状態チェック
-        
+        #self.status_effects_check()
         
     #--遭遇--#
     def encount(self):
