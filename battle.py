@@ -1,5 +1,6 @@
 from common import enter
 from battle_ui import BattleUI
+from move_processor import MoveProcessor
 from datastores.chara_datastore import CharaDataStore
 
 chara = CharaDataStore()
@@ -7,6 +8,7 @@ chara = CharaDataStore()
 class Battle:
     def __init__(self,player,enemy):
         self.ui = BattleUI(player,enemy)
+        self.mp = MoveProcessor(player,enemy,self.ui)
         self.player = player
         self.enemy = enemy
         self.start()
@@ -14,28 +16,109 @@ class Battle:
     def start(self):
         #遭遇
         self.encount()
-        #プレイヤーの行動選択へ
-        self.select_action()
-        #状態チェック
-        #self.status_effects_check()
-        #敵の行動実行
-        self.enemy_action()
-        #状態チェック
-        #self.status_effects_check()
+        
+        result = ""
+        while result == "":
+            #状態チェック
+            self.status_effects_check(start=True)
+            #プレイヤーの行動
+            self.player_turn()
+            #死亡確認
+            result = self.is_dead_check()
+            #敵の行動
+            self.enemy_turn()
+            #死亡確認
+            result = self.is_dead_check()
+            #状態チェック
+            self.status_effects_check(start=False)
+        
+        if result == "win":
+            print("次のフロアに進んだ")
+        else:
+            print("村へもどった")
         
     #--遭遇--#
     def encount(self):
         #UI表示
         enter(self.ui.encount)
-    
+        
+    #--プレイヤーの行動--#
+    def player_turn(self):
+        #行動開始イベント発火
+        for effect in self.player.status_effects.effects:
+            effect.on_action_start()
+        #状態変化による能力変化の更新
+        self.player.calculate_modifier()
+        #行動
+        turn = 1
+        while turn > 0:
+            self.select_action()
+            turn -= 1
+        #行動終了イベント発火
+        for effect in self.player.status_effects.effects:
+            effect.on_action_end()
+        #状態変化の残りターン消費
+        remove_se = self.player.status_effects.turn_check()
+        if len(remove_se) > 0:
+            is_player = True
+            for name in remove_se:
+                enter(self.ui.removed_status_effect,args=[name,is_player])
+        #状態変化による能力変化の更新
+        self.player.calculate_modifier()
+        
     #--敵の行動--#
-    def enemy_action(self):
-        pass
+    def enemy_turn(self):
+        #行動開始イベント発火
+        for effect in self.enemy.status_effects.effects:
+            effect.on_action_start()
+        #状態変化による能力変化の更新
+        self.enemy.calculate_modifier()
+        #行動
+        turn = 1
+        while turn > 0:
+            #self.enemy_action()
+            self.mp.use_a_move(self.enemy.moves[0],is_player=False)
+            turn -= 1
+        #行動終了イベント発火
+        for effect in self.enemy.status_effects.effects:
+            effect.on_action_end()
+        #状態変化の残りターン消費
+        remove_se = self.enemy.status_effects.turn_check()
+        if len(remove_se) > 0:
+            is_player = False
+            for name in remove_se:
+                enter(self.ui.removed_status_effect,args=[name,is_player])
+        #状態変化による能力変化の更新
+        self.enemy.calculate_modifier()
     
     #--状態チェック--#
-    def status_effects_check(self):
-        pass
-        
+    def status_effects_check(self,start):
+        if start:
+            #ターン開始イベント発火
+            for effect in self.player.status_effects.effects:
+                effect.on_turn_start()
+            for effect in self.enemy.status_effects.effects:
+                effect.on_turn_start()
+        else:
+            #ターン終了イベント発火
+            for effect in self.player.status_effects.effects:
+                effect.on_turn_end()
+            for effect in self.enemy.status_effects.effects:
+                effect.on_turn_end()
+        #状態変化による能力変化の更新
+        self.player.calculate_modifier()
+        self.enemy.calculate_modifier()
+    
+    #--死亡チェック--#
+    def is_dead_check(self):
+        if self.player.is_dead:
+            print(f"{self.player.name}は死んでしまった")
+            return "lose"
+        elif self.enemy.is_dead:
+            print(f"{self.enemy.name}を倒した！")
+            return "win"
+        else:
+            return ""
         
     #-- ↓ プレイヤーのコマンド選択 ↓ --#
         
@@ -49,7 +132,7 @@ class Battle:
             self.move_list(page=0)
         # <2:状態変化> 状態変化確認へ
         elif result == 2:
-            pass
+            self.select_check_status_effect()
         # <3:能力確認> ステータス確認へ
         elif result == 3:
             self.check_stats()
@@ -83,8 +166,12 @@ class Battle:
                 self.move_info(page,int(result[1]))
         # 数値
         else:
+            # 1∼9:各技を繰り出す
+            if 1 <= result <= 9 and isinstance(result,int):
+                move = self.player.moves[page*9 + result - 1]
+                self.mp.use_a_move(move,is_player=True)
             # 0:行動選択へ
-            if result == 0:
+            elif result == 0:
                 self.select_action()
                 
     #--攻撃技詳細--#
@@ -94,6 +181,57 @@ class Battle:
         #技一覧にもどる
         self.move_list(page)
         
+    #--誰の状態変化を確認するか選択--#
+    def select_check_status_effect(self):
+        #UI表示
+        result = enter(self.ui.select_check_status_effect,max_num=2,is_back=True)
+        
+        # <1:自分の状態変化を確認> 状態変化の確認へ(プレイヤー)
+        if result == 1:
+            self.check_status_effect(page=0,is_player=True)
+        # <1:相手の状態変化を確認> 状態変化の確認へ(敵)
+        elif result == 2:
+            self.check_status_effect(page=0,is_player=False)
+        elif result == 0:
+            #行動選択に戻る
+            self.select_action()
+        
+    #--状態変化の確認--#
+    def check_status_effect(self,page,is_player):
+        if is_player:
+            #{page}ページの状態変化の数
+            effect_count = len(self.player.status_effects.effects) - (page * 5)
+            #次のページがあるか確認
+            last_page = ((page + 1) == (len(self.player.status_effects.effects) // 5 + 1))
+        else:
+            #{page}ページの状態変化の数
+            effect_count = len(self.enemy.status_effects.effects) - (page * 5)
+            #次のページがあるか確認
+            last_page = ((page + 1) == (len(self.enemy.status_effects.effects) // 5 + 1))
+            
+        #前のページがあるか確認
+        first_page = (page == 0)
+
+        #UI表示
+        result = enter(self.ui.check_status_effect,max_num=effect_count,args=[page,is_player],
+                       is_info=True,is_back=True,is_next=not last_page,is_before=not first_page)
+        
+        if isinstance(result,str):
+            # "":次のページへ
+            if result == "":
+                self.check_status_effect(page + 1)
+            # b: 前のページへ
+            elif result == "b":
+                self.check_status_effect(page - 1)
+            # *n: 詳細へ
+            elif result[0] == '*':
+                pass#self.move_info(page,int(result[1]))
+        # 数値
+        else:
+            # 0 or None:行動選択へ
+            if result == 0 or result is None:
+                self.select_action()
+    
     #--ステータス確認--#
     def check_stats(self):
         #UI表示

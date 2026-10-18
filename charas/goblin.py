@@ -18,9 +18,9 @@ class Goblin(BaseChara):
 class Stats(BaseStats):
     def __init__(self):
         super().__init__(
-            hp = 140,		#体力
-            at = 30,		#攻撃
-            df = 10,		#防御
+            hp = 100,		#体力
+            at = 15,		#攻撃
+            df = 5,			#防御
             mg = 5,			#魔法
             md = 5,			#魔防
             sp = 15,		#俊敏
@@ -28,7 +28,13 @@ class Stats(BaseStats):
 
 #--能力変化--#
 class Modifiers(BaseModifiers):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.at = 0
+        self.df = 0
+        self.mg = 0
+        self.md = 0
+        self.sp = 0
 
 #--状態変化--#
 class StatusEffects(BaseStatusEffects):
@@ -39,7 +45,7 @@ class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
             Move.inst["飛びかかる"](),
-            Move.inst["投石"](),
+            Move.inst["砂かけ"](),
             Move.inst["挑発"](),
             Move.inst["様子を見る"](),
             ])

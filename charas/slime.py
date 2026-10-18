@@ -1,4 +1,7 @@
-from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves,Move
+from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
+from .base_chara import MoveStore,SEStore
+
+move_store = MoveStore()
 
 #--キャラクラス--#
 class Slime(BaseChara):
@@ -15,8 +18,8 @@ class Slime(BaseChara):
 class Stats(BaseStats):
     def __init__(self):
         super().__init__(
-            hp = 100,		#体力
-            at = 100,		#攻撃
+            hp = 1000,		#体力
+            at = 10,		#攻撃
             df = 10,		#防御
             mg = 10,		#魔法
             md = 10,		#魔防
@@ -44,23 +47,12 @@ class StatusEffects(BaseStatusEffects):
 class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
-            Move.inst["攻撃"](),
-            Move.inst["飛びかかる"](),
-            Move.inst["再生"](),
-            Move.inst["休憩"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["攻撃"](),
-            Move.inst["再生"](),
-            Move.inst["休憩"]()
+            MoveStore.inst["攻撃"](),
+            MoveStore.inst["再生"](),
+            MoveStore.inst["休憩"](),
+            MoveStore.inst["飛びかかる"](),
+            MoveStore.inst["砂かけ"](),
+            MoveStore.inst["挑発"]()
             ])
 
 

@@ -1,4 +1,5 @@
 import unicodedata
+import random
 
 #--文字数取得(全角は2文字扱い)--#
 def text_width(text):
@@ -44,4 +45,9 @@ def enter(ui_method,max_num=0,args=None,is_info=False,is_back=False,is_next=Fals
                     is_redo = True
             except ValueError:
                 is_redo = True
+                
+#--確率--#
+def prob(persent):
+    num = random.randint(1, 100)
+    return num <= int(persent)
     

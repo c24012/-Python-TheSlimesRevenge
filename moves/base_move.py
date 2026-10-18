@@ -9,7 +9,7 @@ class BaseMove:
         self.power = power			#威力
         self.acc = acc				#命中
         self.effects = effects		#状態付与 ([])
-        self.target = target		#対象(自分:'u',相手:'o',両方:'b')
+        self.target = target		#対象(自分:'s',相手:'o',両方:'b')
         self.tp = tp				#消費TP(-1:スライムが真似できない技)
         self.recovery = recovery	#回復値
         self.info = ""				#効果説明文
@@ -34,7 +34,7 @@ class Attack(BaseMove):
             power = 100,			威力
             acc = 100,				命中
             effects = None			状態付与 ([])
-            target = 'u'			対象 (自分:'u',相手:'o',両方:'b')
+            target = 'u'			対象 (自分:'s',相手:'o',両方:'b')
             self.tp = tp			消費TP
             recovery = 100			回復値
             )
