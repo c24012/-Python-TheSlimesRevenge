@@ -25,7 +25,7 @@ class SandAttack(BaseMove):
             acc = 70,
             tp = 2,
             target = 'o',
-            effects = [{"effect":se.inst["盲目"](turn=5),"acc":100,"target":'o'}]
+            effects = [{"effect":se.inst["盲目"],"turn":3,"acc":100,"target":'o'}]
             )
         
 #--挑発--#
@@ -35,7 +35,7 @@ class Taunt(BaseMove):
             name = "挑発",
             category = "特殊",
             tp = 2,
-            effects = [{"effect":se.inst["怒り"],"turn":2,"acc":100,"target":'o'}]
+            effects = [{"effect":se.inst["怒り"],"turn":3,"acc":100,"target":'o'}]
             )
         
 #--様子を見る--#

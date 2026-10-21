@@ -31,7 +31,7 @@ class MoveProcessor:
         if is_hit:
             if move.effects is not None:
                 for effect in move.effects:
-                    self.give_effects(effect["effect"],effect["acc"],effect["target"])
+                    self.give_effects(effect["effect"],effect["turn"],effect["acc"],effect["target"])
                     
             if move.recovery is not None:
                 self.recovey_hp()
@@ -74,6 +74,7 @@ class MoveProcessor:
     
     #特殊技
     def special_move(self):
+        enter(self.ui.use_move,args=[self.target,self.facter_text])
         return True
     
     #ダメージ計算
@@ -87,7 +88,7 @@ class MoveProcessor:
         return int(damage)
         
     #状態変化を付与
-    def give_effects(self,effect,acc,target):
+    def give_effects(self,effect,turn,acc,target):
         targets = []
         if target == 's':
             targets = [self.user]
@@ -101,8 +102,9 @@ class MoveProcessor:
             if prob(100 - acc):
                 return
             #付与成功
-            enter(self.ui.add_status_effect,args=[effect,_target])
-            _target.status_effects.add_effect(effect)
+            _effect = effect(turn)
+            enter(self.ui.add_status_effect,args=[_effect,_target])
+            _target.status_effects.add_effect(_effect)
     
     #HP回復
     def recovey_hp(self):

@@ -18,7 +18,16 @@ class BattleUI:
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,"戦闘",redo)
         
-    #--被ダメージ--#
+    #--技を使用--#
+    def use_move(self,target,factor_text,redo=False):
+        texts = []
+        texts.append([3,text.text(factor_text,3)])
+        texts.append([7,text.horiz_right(["(Enter)",""],head=47)])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"戦闘",redo)
+        
+    #--技を使用+ダメージ--#
     def damage(self,value,target,factor_text,redo=False):
         texts = []
         texts.append([2,text.text(factor_text,3)])
@@ -28,7 +37,7 @@ class BattleUI:
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,"戦闘",redo)
         
-    #--被ダメージ(0ダメージ)--#
+    #--技を使用+0ダメージ--#
     def damage_zero(self,target,factor_text,redo=False):
         texts = []
         texts.append([2,text.text(factor_text,3)])
@@ -135,9 +144,11 @@ class BattleUI:
         texts.append([3,text.text(move.info,2)])
             
         if move.effects is not None:
-            texts.append([5,text.text(f"(回復するよ)",head=2)])
+            effect_0 = move.effects[0]['effect']()
+            texts.append([5,text.text(f"({effect_0.name}:{effect_0.get_status_effect_info()})",head=2)])
             if len(move.effects) == 2:
-                texts.append([6,text.text(f"(回復しないかも)",head=2)])
+                effect_1 = move.effects[1]['effect']()
+                texts.append([6,text.text(f"({effect_1.name}:{effect_1.get_status_effect_info()})",head=2)])
                 
         texts.append([7,text.text("(Enter)",head=40)])
         
@@ -151,7 +162,7 @@ class BattleUI:
         texts.append([1,f" {self.player.name}の行動"])
         texts.append([3,text.text("1: 自分の状態変化を確認",head=2)])
         texts.append([5,text.text("2: 相手の状態変化を確認",head=2)])
-        texts.append([7,text.text("(0:もどる)",head=3)])
+        texts.append([7,text.text("(0:もどる)",head=1)])
         #改行を挿入
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,"戦闘",redo)
@@ -195,6 +206,23 @@ class BattleUI:
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,"状態変化 "+(self.player.name if is_player else self.enemy.name),redo)
         
+    #--状態詳細--#
+    def status_effect_info(self,page,is_player,num,redo=False):
+        
+        if is_player:
+            effect = self.player.status_effects.effects[page*5 + num - 1]
+        else:
+            effect = self.enemy.status_effects.effects[page*5 + num - 1]
+        
+        texts = []
+        texts.append([1,text.text(f"[ {effect.name} ]",head=2)])
+        texts.append([3,text.text(effect.get_status_effect_info(),head=2)])
+        
+        texts.append([7,text.text("(Enter)",head=40)])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"状態詳細",redo)
+        
     #--能力確認--#
     def check_stats(self,redo=False):
         #-[+,-]の表示-#
@@ -218,7 +246,7 @@ class BattleUI:
         texts.append([1,text.horiz([f"[{self.player.name}]",f"[{self.enemy.name}]"],head=2)])
         for i in range(5):
             texts.append([i+2,text.horiz([text.tab(f"{stats_text[i]} {player_stats[i]}",f"{modi_text(player_modi[i])}",width=10),
-                                    text.tab(f"{stats_text[i]} {enemy_stats[i]}",f"{modi_text(enemy_modi[i])}",width=10)],head=2)])
+                                    text.tab(f"{stats_text[i]}：{enemy_stats[i]}",f"{modi_text(enemy_modi[i])}",width=10)],head=2)])
         texts.append([7,text.text("(Enter)",head=40)])
         
         #改行を挿入

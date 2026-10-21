@@ -41,7 +41,8 @@ class Modifiers(BaseModifiers):
 
 #--状態変化--#
 class StatusEffects(BaseStatusEffects):
-    pass
+    def __init__(self):
+        super().__init__([])
 
 #--技--#
 class Moves(BaseMoves):

@@ -110,11 +110,12 @@ class BaseModifiers:
         
 #--状態変化クラス--#
 class BaseStatusEffects:
-    def __init__(self,effects=[]):
+    def __init__(self,effects):
         self.effects = effects
         
     #状態変化を付与
     def add_effect(self,effect):
+        print("Baseです")
         self.effects.append(effect)
         
     #状態のターン経過

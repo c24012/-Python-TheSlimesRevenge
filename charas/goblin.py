@@ -1,5 +1,5 @@
 from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
-from datastores.move_datastore import MoveDataStore as Move
+from .base_chara import MoveStore,SEStore
 
 #--キャラクラス--#
 class Goblin(BaseChara):
@@ -38,16 +38,17 @@ class Modifiers(BaseModifiers):
 
 #--状態変化--#
 class StatusEffects(BaseStatusEffects):
-    pass
+    def __init__(self):
+        super().__init__([])
 
 #--技--#
 class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
-            Move.inst["飛びかかる"](),
-            Move.inst["砂かけ"](),
-            Move.inst["挑発"](),
-            Move.inst["様子を見る"](),
+            MoveStore.inst["飛びかかる"](),
+            MoveStore.inst["砂かけ"](),
+            MoveStore.inst["挑発"](),
+            MoveStore.inst["様子を見る"](),
             ])
 
 

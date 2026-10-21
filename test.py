@@ -3,4 +3,4 @@ from battle import Battle
 
 chara = CharaDataStore()
 
-Battle(chara.inst["スライム"](),chara.inst["ゴブリン"]())
+Battle(chara.inst["スライム"](name="プレイヤー"),chara.inst["ゴブリン"]())

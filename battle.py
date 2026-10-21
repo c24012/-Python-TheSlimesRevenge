@@ -1,9 +1,6 @@
 from common import enter
 from battle_ui import BattleUI
 from move_processor import MoveProcessor
-from datastores.chara_datastore import CharaDataStore
-
-chara = CharaDataStore()
 
 class Battle:
     def __init__(self,player,enemy):
@@ -19,23 +16,28 @@ class Battle:
         
         result = ""
         while result == "":
+            
             #状態チェック
             self.status_effects_check(start=True)
+            
             #プレイヤーの行動
             self.player_turn()
+            
             #死亡確認
             result = self.is_dead_check()
+            if result != "":
+                return result
+            
             #敵の行動
             self.enemy_turn()
+            
             #死亡確認
             result = self.is_dead_check()
+            if result != "":
+                return result
+            
             #状態チェック
             self.status_effects_check(start=False)
-        
-        if result == "win":
-            print("次のフロアに進んだ")
-        else:
-            print("村へもどった")
         
     #--遭遇--#
     def encount(self):
@@ -225,12 +227,19 @@ class Battle:
                 self.check_status_effect(page - 1)
             # *n: 詳細へ
             elif result[0] == '*':
-                pass#self.move_info(page,int(result[1]))
+                self.status_effect_info(page,is_player,int(result[1]))
         # 数値
         else:
             # 0 or None:行動選択へ
             if result == 0 or result is None:
                 self.select_action()
+    
+    #--状態詳細--#
+    def status_effect_info(self,page,is_player,num):
+        #UI表示
+        enter(self.ui.status_effect_info,args=[page,is_player,num])
+        #技一覧にもどる
+        self.check_status_effect(page,is_player)
     
     #--ステータス確認--#
     def check_stats(self):

@@ -2,7 +2,7 @@ from status_effects.base_status_effect import BaseStatusEffect
 
 #--盲目状態--#
 class Blindness(BaseStatusEffect):
-    def __init__(self,turn):
+    def __init__(self,turn=0):
         super().__init__(
             name = "盲目",
             info = "技の命中が30%低下",
@@ -11,10 +11,10 @@ class Blindness(BaseStatusEffect):
        
 #--怒り状態--#
 class Enraged(BaseStatusEffect):
-    def __init__(self,turn):
+    def __init__(self,turn=0):
         super().__init__(
             name = "怒り",
-            info = "攻撃Lv+1,防御Lv-1,魔防Lv-1",
+            info = "",
             turn = turn
             )
         self.set_modifier(at=1,df=-1,md=-1)
