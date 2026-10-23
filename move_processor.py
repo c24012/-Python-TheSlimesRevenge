@@ -8,6 +8,7 @@ class MoveProcessor:
         self.user = None
         self.target = None
         self.ui = ui
+        self.message = []
         
     #技を使用
     def use_a_move(self,move,is_player):
@@ -18,7 +19,7 @@ class MoveProcessor:
         self.move = move
         self.user = self.player if is_player else self.enemy
         self.target = self.enemy if is_player else self.player
-        self.facter_text = f"{self.user.name}の{self.move.name}！"
+        self.message.append(f"{self.user.name}の{self.move.name}！")
 
         is_hit = False
         if move.category == "物理":
@@ -35,6 +36,9 @@ class MoveProcessor:
                     
             if move.recovery is not None:
                 self.recovey_hp()
+                
+        #ui
+        #enter()
         
     #物理技
     def physical_move(self):
@@ -52,10 +56,11 @@ class MoveProcessor:
         
         #技が命中
         if damage <= 0:
-            enter(self.ui.damage_zero,args=[self.target,self.facter_text])
+            damage_text = #きいていない
         else:
-            enter(self.ui.damage,args=[damage,self.target,self.facter_text])
+            damage_text = f"{self.target.name}は{damage}のダメージ！"
             self.target.damage(damage)
+        self.message.append(damage_text)
             
         return True
     
@@ -65,10 +70,11 @@ class MoveProcessor:
         #技が命中
         if not any(avoids):
             if damage <= 0:
-                enter(self.ui.damage_zero,args=[self.target,self.facter_text])
+                damage_text = #きいていない
             else:
-                enter(self.ui.damage,args=[damage,self.target,self.facter_text])
+                damage_text = f"{self.target.name}は{damage}のダメージ！"
                 self.target.damage(damage)
+        self.message.append(damage_text)
                 
         return True
     
@@ -103,7 +109,7 @@ class MoveProcessor:
                 return
             #付与成功
             _effect = effect(turn)
-            enter(self.ui.add_status_effect,args=[_effect,_target])
+            #self.message.append()
             _target.status_effects.add_effect(_effect)
     
     #HP回復
@@ -119,7 +125,7 @@ class MoveProcessor:
         for _target in targets:
             #HP回復
             if self.move.recovery is not None:
-                enter(self.ui.recovery_hp,args=[self.move.recovery,_target,self.facter_text])
+                #self.message.append()
                 _target.recover_hp(self.move.recovery)
     
     
