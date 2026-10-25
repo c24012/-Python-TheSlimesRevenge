@@ -18,6 +18,16 @@ class BattleUI:
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,"戦闘",redo)
         
+    #--ターン開始--#
+    def turn_start(self,is_player,redo=False):
+        name = self.player.name if is_player else self.enemy.name
+        texts = []
+        texts.append([3,text.center(f"{name}のターン！")])
+        texts.append([7,text.text("(Enter)",head=40)])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"戦闘",redo)
+        
     #--6行までのテキスト表示--#
     def free(self,message,redo=False):
         texts = []
@@ -39,16 +49,6 @@ class BattleUI:
         else:
             raise ValueError(f"6行以上のメッセージは表示できません\n{message}")
         
-        texts.append([7,text.text("(Enter)",head=40)])
-        #改行を挿入
-        info = text.place_strings_at_lines(texts,line_count=8)
-        self.show_panel(info,"戦闘",redo)
-        
-    #--状態解除--#
-    def removed_status_effect(self,effect,is_player,redo=False):
-        target = self.player if is_player else self.enemy
-        texts = []
-        texts.append([3,text.text(f"{target.name}の{effect.name}の効果が消えた",3)])
         texts.append([7,text.text("(Enter)",head=40)])
         #改行を挿入
         info = text.place_strings_at_lines(texts,line_count=8)
