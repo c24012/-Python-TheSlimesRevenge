@@ -49,6 +49,8 @@ class Battle:
         
     #--プレイヤーの行動--#
     def player_turn(self):
+        #プレイヤーターン開始ui
+        enter(self.ui.turn_start,args=[True])
         #行動開始イベント発火
         for effect in self.player.status_effects.effects:
             effect.on_action_start()
@@ -75,6 +77,8 @@ class Battle:
         
     #--敵の行動--#
     def enemy_turn(self):
+        #敵ターン開始ui
+        enter(self.ui.turn_start,args=[False])
         #行動開始イベント発火
         for effect in self.enemy.status_effects.effects:
             effect.on_action_start()
