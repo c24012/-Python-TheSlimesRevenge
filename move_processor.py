@@ -62,6 +62,11 @@ class MoveProcessor:
             self.message.append(f"{self.target.name}に当たらなかった！")
             return False
         
+        #盲目状態 確率計算(30%で外れる)
+        if self.user.status_effects.has_effect("盲目") and prob(30):
+            self.message.append(f"{self.target.name}に当たらなかった！")
+            return False
+        
         #俊敏差による回避 確率計算
         if prob(min((self.target.stats.sp - self.user.stats.sp)/10 +self.target.stats.sp/self.user.stats.sp,90))	:
             self.message.append(f"{self.target.name}は回避した！")
