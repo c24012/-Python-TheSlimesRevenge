@@ -38,6 +38,9 @@ class Battle:
             
             #状態チェック
             self.status_effects_check(start=False)
+            
+            #プレイヤーのTPを回復する
+            self.player.recover_tp(1)
         
     #--遭遇--#
     def encount(self):
@@ -62,9 +65,11 @@ class Battle:
         #状態変化の残りターン消費
         remove_se = self.player.status_effects.turn_check()
         if len(remove_se) > 0:
-            is_player = True
-            for name in remove_se:
-                enter(self.ui.removed_status_effect,args=[name,is_player])
+            messages = []
+            for i in range(0,len(remove_se),3):
+                for effect in remove_se[i:i+3]:
+                    messages.append(f"{self.player.name}の{effect.name}の効果が消えた")
+                enter(self.ui.free,args=[messages])
         #状態変化による能力変化の更新
         self.player.calculate_modifier()
         
@@ -78,8 +83,8 @@ class Battle:
         #行動
         turn = 1
         while turn > 0:
-            #self.enemy_action()
-            self.mp.use_a_move(self.enemy.moves[0],is_player=False)
+            move = self.enemy.action(self.player)
+            self.mp.use_a_move(move,is_player=False)
             turn -= 1
         #行動終了イベント発火
         for effect in self.enemy.status_effects.effects:
@@ -87,9 +92,11 @@ class Battle:
         #状態変化の残りターン消費
         remove_se = self.enemy.status_effects.turn_check()
         if len(remove_se) > 0:
-            is_player = False
-            for name in remove_se:
-                enter(self.ui.removed_status_effect,args=[name,is_player])
+            messages = []
+            for i in range(0,len(remove_se),3):
+                for effect in remove_se[i:i+3]:
+                    messages.append(f"{self.enemy.name}の{effect.name}の効果が消えた")
+                enter(self.ui.free,args=[messages])
         #状態変化による能力変化の更新
         self.enemy.calculate_modifier()
     
@@ -145,10 +152,10 @@ class Battle:
     #--攻撃技選択--# 
     def move_list(self,page):
         
-        #{page}ページの技の数
-        move_count = len(self.player.moves) - (page * 9)
+        #このページの技の数
+        move_count = len(self.player.moves.moves) - (page * 9)
         #次のページがあるか確認
-        not_last = ((page + 1) != (len(self.player.moves) // 9 + 1))
+        not_last = ((page + 1) != (len(self.player.moves.moves) // 9 + 1))
         #前のページがあるか確認
         not_first = (page != 0)
         
@@ -170,18 +177,43 @@ class Battle:
         else:
             # 1∼9:各技を繰り出す
             if 1 <= result <= 9 and isinstance(result,int):
-                move = self.player.moves[page*9 + result - 1]
-                self.mp.use_a_move(move,is_player=True)
+                move = self.player.moves.moves[page*9 + result - 1]
+                #TPが足りていたら発動
+                if move.tp <= self.player.stats.tp:
+                    self.player.use_tp(move.tp)
+                    self.mp.use_a_move(move,is_player=True)
+                else:
+                    enter(self.ui.free,args=[["TPがなりない！"]])
+                    self.move_list(page)
             # 0:行動選択へ
             elif result == 0:
                 self.select_action()
                 
     #--攻撃技詳細--#
     def move_info(self,page,num):
+        #技データを取得
+        move = self.player.moves[page*9 + num - 1]
+        #付与する状態の数を取得
+        effect_cocunt = 0 if move.effects is None else len(move.effects)
+        
         #UI表示
-        enter(self.ui.move_info,args=[page,num])
-        #技一覧にもどる
-        self.move_list(page)
+        result = enter(self.ui.move_info, max_num=effect_cocunt, args=[page,num] ,is_next=True)
+        # 数値
+        if isinstance(result,int):
+            # 1∼2:付与する状態の詳細確認へ
+            if 1 <= result <= 2:
+                effect = move.effects[result-1]
+                self.status_effect_info_from_move(effect,page,num)
+        else:
+            #技一覧にもどる
+            self.move_list(page)
+                
+    #--技の付与状態詳細--#
+    def status_effect_info_from_move(self,effect,page,num):
+        #UI表示
+        enter(self.ui.status_effect_info_from_move,args=[effect])
+        #技詳細にもどる
+        self.move_info(page,num)
         
     #--誰の状態変化を確認するか選択--#
     def select_check_status_effect(self):
@@ -216,7 +248,7 @@ class Battle:
 
         #UI表示
         result = enter(self.ui.check_status_effect,max_num=effect_count,args=[page,is_player],
-                       is_info=True,is_back=True,is_next=not last_page,is_before=not first_page)
+                       is_back=True,is_next=not last_page,is_before=not first_page)
         
         if isinstance(result,str):
             # "":次のページへ
@@ -225,14 +257,15 @@ class Battle:
             # b: 前のページへ
             elif result == "b":
                 self.check_status_effect(page - 1)
-            # *n: 詳細へ
-            elif result[0] == '*':
-                self.status_effect_info(page,is_player,int(result[1]))
         # 数値
         else:
             # 0 or None:行動選択へ
             if result == 0 or result is None:
                 self.select_action()
+            # 1-9:詳細
+            elif 1 <= result and result <= 9:
+                self.status_effect_info(page,is_player,result)
+            
     
     #--状態詳細--#
     def status_effect_info(self,page,is_player,num):

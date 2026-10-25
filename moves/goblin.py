@@ -1,7 +1,5 @@
-from datastores.status_effect_datastore import StatusEffectDataStore as StatusEffect
 from .base_move import BaseMove
-
-se = StatusEffect()
+from .base_move import StatusEffectForMove as SEFM
 
 #--飛びかかる--#
 class Pounce(BaseMove):
@@ -14,6 +12,9 @@ class Pounce(BaseMove):
             tp = 5,
             target = 'o'
             )
+        self.set_info(
+            "勢いよく飛びかかって攻撃する"
+            )
         
 #--砂かけ--#
 class SandAttack(BaseMove):
@@ -22,10 +23,13 @@ class SandAttack(BaseMove):
             name = "砂かけ",
             category = "物理",
             power = 30,
-            acc = 70,
+            acc = 100,
             tp = 2,
             target = 'o',
-            effects = [{"effect":se.inst["盲目"],"turn":3,"acc":100,"target":'o'}]
+            effects = [SEFM(name="盲目",target='o',acc=70,turn=3)]
+            )
+        self.set_info(
+            "確率70%で相手に 盲目(3ターン) を付与する"
             )
         
 #--挑発--#
@@ -35,7 +39,10 @@ class Taunt(BaseMove):
             name = "挑発",
             category = "特殊",
             tp = 2,
-            effects = [{"effect":se.inst["怒り"],"turn":3,"acc":100,"target":'o'}]
+            effects = [SEFM(name="怒り",target='o',turn=3)]
+            )
+        self.set_info(
+            "相手に 怒り(3ターン) を付与する"
             )
         
 #--様子を見る--#
@@ -44,7 +51,6 @@ class Observe(BaseMove):
         super().__init__(
             name = "様子を見る",
             category = "特殊",
-            tp = -1,
             )
 
 

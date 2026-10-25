@@ -1,8 +1,6 @@
 from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
 from .base_chara import MoveStore,SEStore
 
-move_store = MoveStore()
-
 #--キャラクラス--#
 class Slime(BaseChara):
     def __init__(self,name="スライム"):
@@ -13,12 +11,20 @@ class Slime(BaseChara):
         self.set_status_effects(StatusEffects())	#状態変化
         self.set_moves(Moves())						#技
         
+    #TPを消費
+    def use_tp(self,value):
+        self.stats.tp -= value
+        
+    #TPを回復
+    def recover_tp(self,value):
+        self.stats.tp = min(self.stats.tp + value,self.stats.max_tp)
+        
         
 #--ステータス--#
 class Stats(BaseStats):
     def __init__(self):
         super().__init__(
-            hp = 1000,		#体力
+            hp = 100,		#体力
             at = 10,		#攻撃
             df = 10,		#防御
             mg = 10,		#魔法
@@ -26,7 +32,7 @@ class Stats(BaseStats):
             sp = 10,		#俊敏
             )
         #スライムのみのステータス
-        self.tp = 20			#変身力
+        self.tp = 30			#変身力
         self.max_tp = self.tp	#最大変身力
 
 #--能力変化--#
@@ -50,7 +56,6 @@ class Moves(BaseMoves):
         super().__init__([
             MoveStore.inst["攻撃"](),
             MoveStore.inst["再生"](),
-            MoveStore.inst["休憩"](),
             MoveStore.inst["飛びかかる"](),
             MoveStore.inst["砂かけ"](),
             MoveStore.inst["挑発"]()

@@ -51,3 +51,16 @@ def prob(persent):
     num = random.randint(1, 100)
     return num <= int(persent)
     
+#--重み付き確率--#
+def choice(items):
+    elements,weights = map(list,zip(*items))
+    return random.choices(elements,weights)[0]
+    
+    
+        
+        
+        
+        
+        
+        
+        

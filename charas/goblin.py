@@ -1,3 +1,4 @@
+from common import choice
 from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
 from .base_chara import MoveStore,SEStore
 
@@ -12,6 +13,16 @@ class Goblin(BaseChara):
         self.set_moves(Moves())						#技
         self.set_encount_mess(						
             "こん棒を振り回している")				#遭遇コメント
+        
+    #行動AI
+    def action(self,player):
+        # 攻撃, 飛びかかる, 砂かけ, 挑発, 様子を見る
+        moves = [["攻撃",2],["飛びかかる",1],["様子を見る",1]]
+        if not player.status_effects.has_effect(effect_name="怒り"):
+            moves.append(["挑発",2])
+        if not player.status_effects.has_effect(effect_name="盲目"):
+            moves.append(["砂かけ",2])
+        return self.moves.get_move(choice(moves))
         
         
 #--ステータス--#
@@ -45,6 +56,7 @@ class StatusEffects(BaseStatusEffects):
 class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
+            MoveStore.inst["敵攻撃"](),
             MoveStore.inst["飛びかかる"](),
             MoveStore.inst["砂かけ"](),
             MoveStore.inst["挑発"](),

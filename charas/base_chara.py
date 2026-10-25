@@ -26,10 +26,14 @@ class BaseChara:
         self.status_effects = status_effects
         
     def set_moves(self,move):
-        self.moves = move.moves
+        self.moves = move
         
     def set_encount_mess(self,message):
         self.encount_mess = message
+        
+    #行動AI
+    def action(self,player):
+        pass
         
     #被ダメージ
     def damage(self,value):
@@ -115,8 +119,32 @@ class BaseStatusEffects:
         
     #状態変化を付与
     def add_effect(self,effect):
-        print("Baseです")
         self.effects.append(effect)
+        
+    #特定の状態のレベルを上昇
+    def level_up(self,effect_class,lv=1):
+        for i in range(len(self.effects)):
+            if isinstance(self.effects[i],effect_class):
+                self.effects[i].level += lv
+                self.effects[i].level = min(self.effects[i].level,3)
+        
+    #特定の状態を持っているかを取得
+    def has_effect(self,effect_class=None,effect_name=None):
+        if effect_class is not None:
+            return any(isinstance(effect,effect_class) for effect in self.effects)
+        elif effect_name is not None:
+            return any(effect_name == effect.name for effect in self.effects)
+        
+    #所持している状態を取得
+    def get_effect(self,effect_class=None,effect_name=None):
+        if effect_class is not None:
+            for i in range(len(self.effects)):
+                if isinstance(self.effects[i],effect_class):
+                    return self.effects[i]
+        elif effect_name is not None:
+            for i in range(len(self.effects)):
+                if self.effects[i].name == effect_name:
+                    return self.effects[i]
         
     #状態のターン経過
     def turn_check(self):
@@ -132,13 +160,15 @@ class BaseStatusEffects:
         for effect in remove_effects:
             self.effects.remove(effect)
         return remove_effects
-                
-    #指定の状態を持っているかを取得
-    def is_enable(self,effect_name):
-        return any(effect_name in sublist for sublist in self.effects)
     
 #--技クラス--#
 class BaseMoves:
     def __init__(self,moves):
         self.moves = moves
+        
+    def get_move(self,move_name):
+        for move in self.moves:
+            if move.name == move_name:
+                return move
+        return None
 
