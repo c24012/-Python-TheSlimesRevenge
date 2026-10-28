@@ -1,7 +1,8 @@
 from datastores.chara_datastore import CharaDataStore
-
-from battle import Battle
+from castle.battle.battle import Battle
+from castle.floor.floor import Floor
 
 chara = CharaDataStore()
 
-Battle(chara.inst["スライム"](name="プレイヤー"),chara.inst["ゴブリン"]())
+#Battle(chara.inst["スライム"](),chara.inst["ゴブリン"]())
+Floor(chara.inst["スライム"]())

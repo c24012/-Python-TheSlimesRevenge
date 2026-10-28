@@ -9,7 +9,7 @@ class Pounce(BaseMove):
             category = "物理",
             power = 130,
             acc = 80,
-            tp = 5,
+            tp = 4,
             target = 'o'
             )
         self.set_info(
@@ -24,7 +24,7 @@ class SandAttack(BaseMove):
             category = "物理",
             power = 30,
             acc = 100,
-            tp = 2,
+            tp = 3,
             target = 'o',
             effects = [SEFM(name="盲目",target='o',acc=70,turn=3)]
             )
@@ -38,7 +38,7 @@ class Taunt(BaseMove):
         super().__init__(
             name = "挑発",
             category = "特殊",
-            tp = 2,
+            tp = 3,
             effects = [SEFM(name="怒り",target='o',turn=3)]
             )
         self.set_info(

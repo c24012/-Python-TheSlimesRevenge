@@ -93,6 +93,15 @@ class Text:
             space = width - text_width(text1)
             text += text1 + (" "*space) + text2
             return text
+        
+    def tab_right(self,text1,text2,width,head=0):
+        text = (" " * head)
+        if text_width(text1) >= width:
+            return text+text1+text2
+        else:
+            space = width - text_width(text2)
+            text += text1 + (" "*space) + text2
+            return text
     
     def gage(self,value,max_value,size=18):
         percent = value/max_value
@@ -100,7 +109,7 @@ class Text:
             count = 0
         else:
             count = int(max(percent * size,1))
-        text = "[" + ("-" * (size - count)) + ("/" * count) + "]"
+        text = "[" + ("/" * count) + ("-" * (size - count)) + "]"
         return text
     
     def place_strings_at_lines(self,texts,line_count):

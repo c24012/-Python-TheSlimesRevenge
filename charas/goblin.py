@@ -18,10 +18,15 @@ class Goblin(BaseChara):
     def action(self,player):
         # 攻撃, 飛びかかる, 砂かけ, 挑発, 様子を見る
         moves = [["攻撃",2],["飛びかかる",1],["様子を見る",1]]
+        #プレイヤーが怒り状態じゃなければ挑発
         if not player.status_effects.has_effect(effect_name="怒り"):
             moves.append(["挑発",2])
+        #プレイヤーが盲目状態じゃなければ砂かけ
         if not player.status_effects.has_effect(effect_name="盲目"):
             moves.append(["砂かけ",2])
+        #残り体力が1/3以下の場合、飛びかかるか様子を見るの2択
+        if self.stats.hp <= self.stats.max_hp // 3:
+            moves = [["飛びかかる",3],["様子を見る",2]]
         return self.moves.get_move(choice(moves))
         
         
@@ -29,7 +34,7 @@ class Goblin(BaseChara):
 class Stats(BaseStats):
     def __init__(self):
         super().__init__(
-            hp = 100,		#体力
+            hp = 130,		#体力
             at = 15,		#攻撃
             df = 5,			#防御
             mg = 5,			#魔法
