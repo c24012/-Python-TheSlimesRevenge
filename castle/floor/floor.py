@@ -57,9 +57,21 @@ class Floor:
     def battle(self):
         is_win = Battle(self.player,CharaDS.inst["ゴブリン"]()).get_result()
         if is_win:
-            self.next_floor()
+            self.bleak_room()
         else:
             self.exit_castle(is_defeated_king=False)
+    
+    #休憩部屋
+    def bleak_room(self):
+        #休憩してHPとTPを回復
+        hp_amount = self.player.stats.max_hp // 3
+        tp_amount = self.player.stats.max_tp // 3
+        self.player.recover_hp(hp_amount)
+        self.player.recover_tp(tp_amount)
+        #UI表示
+        enter(self.ui.bleak_room,args=[hp_amount,tp_amount])
+        #次のフロアへ
+        self.next_floor()
         
         
         

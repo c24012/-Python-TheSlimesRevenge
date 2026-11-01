@@ -1,18 +1,17 @@
 from common import choice
 from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
-from .base_chara import MoveStore,SEStore
+from .base_chara import MStore,SEStore
 
 #--キャラクラス--#
 class Goblin(BaseChara):
     def __init__(self):
         super().__init__()
-        self.set_name("ゴブリン")					#キャラクター名
-        self.set_stats(Stats())						#ステータス
-        self.set_modifiers(Modifiers())				#能力変化
-        self.set_status_effects(StatusEffects())	#状態変化
-        self.set_moves(Moves())						#技
-        self.set_encount_mess(						
-            "こん棒を振り回している")				#遭遇コメント
+        self.name = "ゴブリン"						#キャラ名
+        self.stats = Stats()						#能力値
+        self.modifiers = Modifiers()				#能力変化
+        self.status_effects = StatusEffects()		#状態変化
+        self.moves = Moves()						#技
+        self.encount_ms = "こん棒を振り回している"	#エンカウントメッセージ
         
     #行動AI
     def action(self,player):
@@ -61,11 +60,11 @@ class StatusEffects(BaseStatusEffects):
 class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
-            MoveStore.inst["敵攻撃"](),
-            MoveStore.inst["飛びかかる"](),
-            MoveStore.inst["砂かけ"](),
-            MoveStore.inst["挑発"](),
-            MoveStore.inst["様子を見る"](),
+            MStore.inst["敵攻撃"](),
+            MStore.inst["飛びかかる"](),
+            MStore.inst["砂かけ"](),
+            MStore.inst["挑発"](),
+            MStore.inst["様子を見る"](),
             ])
 
 

@@ -12,9 +12,7 @@ class Attack(BaseMove):
             acc = 100,
             tp = 0
             )
-        self.set_info(
-            "通常攻撃"
-            )
+        self.set_info("通常攻撃")
         
 #--再生--#
 class Regenerate(BaseMove):
@@ -24,22 +22,6 @@ class Regenerate(BaseMove):
             category = "特殊",
             target = 's',
             recovery = [40,'s'],
-            tp = 0
+            tp = 5
             )
-        self.set_info(
-            f"自分のHPを{self.recovery}回復する"
-            )
-
-"""#--力溜め--#
-class Regenerate(BaseMove):
-    def __init__(self):
-        super().__init__(
-            name = "力溜め",
-            category = "特殊",
-            tp = 0,
-            target = 's',
-            effects = [SEFM(name="ためる",target='s',level=1)]
-            )
-        self.set_info(
-            f"自分に ためる(Lv1) を付与する"
-            )"""
+        self.set_info(f"自分のHPを{self.recovery[0]}回復する")

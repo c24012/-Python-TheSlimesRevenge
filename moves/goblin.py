@@ -12,9 +12,7 @@ class Pounce(BaseMove):
             tp = 4,
             target = 'o'
             )
-        self.set_info(
-            "勢いよく飛びかかって攻撃する"
-            )
+        self.set_info("勢いよく飛びかかって攻撃する")
         
 #--砂かけ--#
 class SandAttack(BaseMove):
@@ -28,9 +26,7 @@ class SandAttack(BaseMove):
             target = 'o',
             effects = [SEFM(name="盲目",target='o',acc=70,turn=3)]
             )
-        self.set_info(
-            "確率70%で相手に 盲目(3ターン) を付与する"
-            )
+        self.set_info("確率70%で相手に 盲目(3ターン) を付与する")
         
 #--挑発--#
 class Taunt(BaseMove):
@@ -41,9 +37,7 @@ class Taunt(BaseMove):
             tp = 3,
             effects = [SEFM(name="怒り",target='o',turn=3)]
             )
-        self.set_info(
-            "相手に 怒り(3ターン) を付与する"
-            )
+        self.set_info("相手に 怒り(3ターン) を付与する")
         
 #--様子を見る--#
 class Observe(BaseMove):

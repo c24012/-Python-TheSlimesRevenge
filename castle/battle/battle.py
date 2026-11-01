@@ -56,6 +56,8 @@ class Battle:
         #行動開始イベント発火
         for effect in self.player.status_effects.effects:
             effect.on_action_start()
+        #お宝による能力値増減の更新
+        self.player.calculate_treasures_stats()
         #状態変化による能力変化の更新
         self.player.calculate_modifier()
         #行動
@@ -74,6 +76,8 @@ class Battle:
                 for effect in remove_se[i:i+3]:
                     messages.append(f"{self.player.name}の{effect.name}の効果が消えた")
                 enter(self.ui.free,args=[messages])
+        #お宝による能力値増減の更新
+        self.player.calculate_treasures_stats()
         #状態変化による能力変化の更新
         self.player.calculate_modifier()
         
@@ -131,9 +135,43 @@ class Battle:
             return False
         elif self.enemy.is_dead:
             enter(self.ui.battle_end,args=[f"{self.enemy.name}を倒した！"])
+            #技の習得へ
+            self.learn_move()
             return True
         else:
             return None
+        
+    #敵の技を習得
+    def learn_move(self):
+        #相手の模倣できる技を取得
+        moves = []
+        for move in self.enemy.moves.moves:
+            #模倣できない技を除外
+            if move.tp is None:
+                continue
+            #プレイヤーがすでに覚えている技も除外
+            elif self.player.moves.get_move(move.name) is not None:
+                continue
+            else:
+                moves.append(move)
+        #模倣できる技がない場合
+        if not moves:
+            enter(self.ui.free,args=[[f"{self.player.name}が模倣できる技がなかった..."]])
+            return
+                
+        #選択肢UI
+        result = enter(self.ui.learn_move,max_num=len(moves),args=[moves],is_info=True)
+        
+        if isinstance(result,str):
+            # *n: 詳細へ
+            if result[0] == '*':
+                self.move_info(move=moves[int(result[1])-1],is_learn_move=True)
+        # 数値
+        else:
+            # 1∼N:各技を習得
+            if 1 <= result <= 9 and isinstance(result,int):
+                self.player.moves.add_move(moves[result-1])
+                enter(self.ui.free,args=[[f"{self.player.name}は{moves[result-1].name}をおぼえた！"]])
         
     #-- ↓ プレイヤーのコマンド選択 ↓ --#
         
@@ -153,7 +191,7 @@ class Battle:
             self.check_stats()
         # <4:お宝確認> お宝確認へ
         elif result == 4:
-            pass
+            self.treasure_list(page=0)
             
     #--攻撃技選択--# 
     def move_list(self,page):
@@ -178,7 +216,7 @@ class Battle:
                 self.move_list(page - 1)
             # *n: 詳細へ
             elif result[0] == '*':
-                self.move_info(page,int(result[1]))
+                self.move_info(page=page,num=int(result[1]))
         # 数値
         else:
             # 1∼9:各技を繰り出す
@@ -196,30 +234,37 @@ class Battle:
                 self.select_action()
                 
     #--攻撃技詳細--#
-    def move_info(self,page,num):
+    def move_info(self,page=0,num=0,move=None,is_learn_move=False):
         #技データを取得
-        move = self.player.moves[page*9 + num - 1]
+        if is_learn_move:
+            _move = move
+        else:
+            _move = self.player.moves.moves[page*9 + num - 1]
         #付与する状態の数を取得
-        effect_cocunt = 0 if move.effects is None else len(move.effects)
+        effect_cocunt = 0 if _move.effects is None else len(_move.effects)
         
         #UI表示
-        result = enter(self.ui.move_info, max_num=effect_cocunt, args=[page,num] ,is_next=True)
+        result = enter(self.ui.move_info, max_num=effect_cocunt, args=[_move] ,is_next=True)
         # 数値
         if isinstance(result,int):
             # 1∼2:付与する状態の詳細確認へ
             if 1 <= result <= 2:
-                effect = move.effects[result-1]
-                self.status_effect_info_from_move(effect,page,num)
+                effect = _move.effects[result-1]
+                self.status_effect_info_from_move(effect,page,num,move,is_learn_move)
         else:
-            #技一覧にもどる
-            self.move_list(page)
+            #技習得時なら習得画面にもどる
+            if is_learn_move:
+                self.learn_move()
+            else:
+                #技一覧にもどる
+                self.move_list(page)
                 
     #--技の付与状態詳細--#
-    def status_effect_info_from_move(self,effect,page,num):
+    def status_effect_info_from_move(self,effect,page,num,move=None,is_learn_move=False):
         #UI表示
         enter(self.ui.status_effect_info_from_move,args=[effect])
         #技詳細にもどる
-        self.move_info(page,num)
+        self.move_info(page=page,num=num,move=move,is_learn_move=is_learn_move)
         
     #--誰の状態変化を確認するか選択--#
     def select_check_status_effect(self):
@@ -287,6 +332,61 @@ class Battle:
         #行動選択に戻る
         self.select_action()
         
+    #--お宝確認--# 
+    def treasure_list(self,page):
+        
+        #このページの技の数
+        move_count = len(self.player.treasures.treasures) - (page * 9)
+        #次のページがあるか確認
+        not_last = ((page + 1) != (len(self.player.treasures.treasures) // 9 + 1))
+        #前のページがあるか確認
+        not_first = (page != 0)
+        
+        #UI表示
+        result = enter(self.ui.treasures_list,max_num=move_count,args=[page],
+                       is_info=True,is_back=True,is_next=not_last,is_before=not_first)
+        
+        if isinstance(result,str):
+            # "":次のページへ
+            if result == "":
+                self.treasure_list(page + 1)
+            # b: 前のページへ
+            elif result == "b":
+                self.treasure_list(page - 1)
+        # 数値
+        else:
+            # 1∼9:各技を繰り出す
+            if 1 <= result <= 9 and isinstance(result,int):
+                self.treasure_info(page,result)
+            # 0:行動選択へ
+            elif result == 0:
+                self.select_action()
+                
+    #--お宝詳細--#
+    def treasure_info(self,page,num):
+        #技データを取得
+        treasure = self.player.treasures.treasures[page*9 + num - 1]
+        #付与する状態の数を取得
+        effect_cocunt = 0 if treasure.effects is None else len(treasure.effects)
+        
+        #UI表示
+        result = enter(self.ui.treasure_info, max_num=effect_cocunt, args=[treasure] ,is_next=True)
+        # 数値
+        if isinstance(result,int):
+            # 1∼2:付与する状態の詳細確認へ
+            if 1 <= result <= 2:
+                effect = treasure.effects[result-1]
+                self.status_effect_info_from_treasure(effect,page,num)
+        else:
+            #お宝確認にもどる
+            self.treasure_list(page)
+                    
+    #--お宝の付与状態詳細--#
+    def status_effect_info_from_treasure(self,effect,page,num):
+        #UI表示
+        enter(self.ui.status_effect_info_from_treasure,args=[effect])
+        #お宝詳細にもどる
+        self.treasure_info(page,num)
         
         
         

@@ -21,6 +21,22 @@ class FloorUI:
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,redo)
         
+    #--休憩部屋--#
+    def bleak_room(self,hp,tp,redo=False):
+        texts = []
+        texts.append([1,text.text(f"上に進む階段を見つけた！",head=1)])
+        texts.append([3,text.text(f"{self.player.name}は少し休憩して次の階へ進んだ",head=1)])
+        i = 4
+        if hp > 0:
+            texts.append([i,text.text(f"HPが{hp}回復した",head=2)])
+            i += 1
+        if tp > 0:
+            texts.append([i,text.text(f"TPが{tp}回復した",head=2)])
+        texts.append([7,text.text("(Enter)",head=40)])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,redo)
+        
     #-- ↓ プレイヤーのコマンド選択 ↓ --#
         
     #--行動選択--#

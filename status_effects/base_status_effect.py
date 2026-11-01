@@ -1,14 +1,18 @@
 class BaseStatusEffect:
-    def __init__(self,name,turn=None,level=None,info=""):
+    def __init__(self,name,turn=None,level=None):
         self.name = name
         self.turn = turn
         self.level = level
-        self.info = info
+        self.info = []
         self.set_modifier()
              
     #能力変化登録
     def set_modifier(self,at=0,df=0,mg=0,md=0,sp=0):
         self.modifier = {"at":at,"df":df,"mg":mg,"md":md,"sp":sp}
+        
+    #詳細説明登録
+    def set_info(self,*texts):
+        self.info = texts
         
     #ターン経過
     def reduce_turn(self):

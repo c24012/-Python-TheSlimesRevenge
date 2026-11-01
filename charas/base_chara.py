@@ -1,4 +1,4 @@
-from datastores.move_datastore import MoveDataStore as MoveStore
+from datastores.move_datastore import MoveDataStore as MStore
 from datastores.status_effect_datastore import StatusEffectDataStore as SEStore
 
 #--キャラクラス--#
@@ -12,24 +12,6 @@ class BaseChara:
         self.moves = None				#技
         self.encount_ms = ""			#エンカウントメッセージ
         self.is_dead = False			#死亡フラグ
-        
-    def set_name(self,name):
-        self.name = name
-    
-    def set_stats(self,stats):
-        self.stats = stats
-        
-    def set_modifiers(self,modifiers):
-        self.modifiers = modifiers
-        
-    def set_status_effects(self,status_effects):
-        self.status_effects = status_effects
-        
-    def set_moves(self,move):
-        self.moves = move
-        
-    def set_encount_mess(self,message):
-        self.encount_mess = message
         
     #行動AI
     def action(self,player):
@@ -80,12 +62,14 @@ class BaseStats:
                 
     #ステータス名を指定してステータス値を取得
     def get_state(self,param):
+        if param not in {"hp","max_hp","at","df","mg","md","sp"}:
+            raise ValueError(f"取得できる変数名ではありません(引数{param})")
         return getattr(self,param)
     
     #ステータス名を指定してステータス値を設定
     def set_state(self,param,value):
         if param not in {"hp","max_hp","at","df","mg","md","sp"}:
-            raise ValueError("変更できる変数名ではありません")
+            raise ValueError("変更できる変数名ではありません(引数{param})")
         setattr(self,param,value)
         
 #--能力変化クラス--#
@@ -171,4 +155,7 @@ class BaseMoves:
             if move.name == move_name:
                 return move
         return None
+    
+    def add_move(self,move):
+        self.moves.append(move)
 

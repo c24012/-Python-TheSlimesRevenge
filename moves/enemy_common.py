@@ -11,6 +11,4 @@ class EnemyAttack(BaseMove):
             power = 100,
             acc = 100,
             )
-        self.set_info(
-            "通常攻撃"
-            )
+        self.set_info("通常攻撃")

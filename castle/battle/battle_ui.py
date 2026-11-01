@@ -12,7 +12,7 @@ class BattleUI:
     def encount(self,redo=False):
         texts = []
         texts.append([2,text.center(f"{self.enemy.name}が現れた！")])
-        texts.append([5,text.center(self.enemy.encount_mess)])
+        texts.append([5,text.center(self.enemy.encount_ms)])
         texts.append([7,text.text("(Enter)",head=40)])
         #改行を挿入
         info = text.place_strings_at_lines(texts,line_count=8)
@@ -98,9 +98,7 @@ class BattleUI:
         self.show_panel(info,"技選択",redo)
         
     #--技詳細--#
-    def move_info(self,page,num,redo=False):
-        
-        move = self.player.moves[page*9 + num - 1]
+    def move_info(self,move,redo=False):
         power = f"{move.power}" if move.category != "特殊" else " -"
         acc = f"{move.acc}" if move.category == "物理" else " -"
         
@@ -140,7 +138,7 @@ class BattleUI:
             type_text = "Lv:X"
         
         texts = []
-        texts.append([1,text.horiz_free([[f"[ {effect.name} ]",2],[type_text,20]])])
+        texts.append([1,text.horiz_free([[f"[ {effect.name} ]",1],[type_text,20]])])
         
         for i in range(len(effect.info)):
             texts.append([3+i,text.text(effect.info[i],head=3)])
@@ -217,7 +215,7 @@ class BattleUI:
             type_text = "Lv:X"
         
         texts = []
-        texts.append([1,text.horiz_free([[f"[ {effect.name} ]",2],[type_text,20]])])
+        texts.append([1,text.horiz_free([[f"[ {effect.name} ]",1],[type_text,20]])])
         
         for i in range(len(effect.info)):
             texts.append([3+i,text.text(effect.info[i],head=3)])
@@ -256,10 +254,88 @@ class BattleUI:
         #改行を挿入
         info = text.place_strings_at_lines(texts,line_count=8)
         self.show_panel(info,"能力確認",redo)
+        
+    #--お宝確認--#
+    def treasures_list(self,page,redo=False):
+        
+        treasures = self.player.treasures.treasures[0+(page*9):9+(page*9)]
+        treasure_texts = [""]*9
+        for i in range(9):
+            if len(treasures) > i:
+                treasure_texts[i] = (f"{i+1}:{treasures[i].name}")
+        max_page = len(self.player.treasures.treasures) // 9 + 1
+                
+        texts = []
+        texts.append([1,text.horiz([treasure_texts[0],treasure_texts[5]],head=1)])
+        texts.append([2,text.horiz([treasure_texts[1],treasure_texts[6]],head=1)])
+        texts.append([3,text.horiz([treasure_texts[2],treasure_texts[7]],head=1)])
+        texts.append([4,text.horiz([treasure_texts[3],treasure_texts[8]],head=1)])
+        texts.append([5,text.horiz([treasure_texts[4],""],head=1)])
+        texts.append([6,text.text("(番号:詳細)",head=36)])
+        texts.append([7,text.horiz_alignment("(b:前,0:もどる)",f"{page+1} / {max_page}","(Enter:次)")])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"お宝確認",redo)
+        
+    #--お宝詳細--#
+    def treasure_info(self,treasure,redo=False):
+        texts = []
+        texts.append([1,text.text(f" [ {treasure.name} ]")])
+        
+        for i in range(len(treasure.info)):
+            texts.append([3+i,text.text(treasure.info[i],head=2)])
+            
+        if treasure.effects is not None:
+            effect_texts = ""
+            effect_texts += f"(1:{treasure.effects[0].instance_effect().name}"
+            if len(treasure.effects) == 2:
+                effect_texts += f",2:{treasure.effects[0].instance_effect().name}"
+            effect_texts += ")"
+            texts.append([6,text.horiz_free([[effect_texts,2],["(番号:詳細)",36]])])
+        
+        texts.append([7,text.text("(Enter)",head=40)])
+        
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"お宝詳細",redo)
+    
+    #--お宝の付与状態詳細--#
+    def status_effect_info_from_treasure(self,effect_class,redo=False):
+
+        effect = effect_class.instance_effect()
+
+        type_text =""
+        if effect.turn is not None and effect.level is not None:
+            type_text = "ターンX , Lv:X"
+        elif effect.turn is not None:
+            type_text = "ターンX"
+        else:
+            type_text = "Lv:X"
+        
+        texts = []
+        texts.append([1,text.horiz_free([[f"[ {effect.name} ]",1],[type_text,20]])])
+        
+        for i in range(len(effect.info)):
+            texts.append([3+i,text.text(effect.info[i],head=3)])
+        
+        texts.append([7,text.text("(Enter)",head=40)])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"状態詳細",redo)
     
     #-- ↑ プレイヤーのコマンド選択 ↑ --#
-        
-        
+    
+    #--技の習得--#
+    def learn_move(self,moves,redo=False):
+        texts = []
+        texts.append([1,f" どの技を模倣する？"])
+        for i in range(len(moves)):
+            texts.append([3+i,text.horiz_free([[f"{1+i}:{moves[i].name}",2],[f"消費TP {moves[i].tp}",16]])])
+        texts.append([7,text.text("(*番号:詳細)",head=36)])
+        #改行を挿入
+        info = text.place_strings_at_lines(texts,line_count=8)
+        self.show_panel(info,"技の習得",redo)
+    
     #--シーン(共通)--#
     def get_scene(self,player,enemy):
         #各行のテキスト作成
