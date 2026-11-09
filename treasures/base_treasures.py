@@ -12,7 +12,7 @@ class BaseTreasure:
         self.info = texts
         
     #--戦闘開始イベント--#
-    def start_battle_event(self):
+    def start_battle_event(self,battle_class):
         pass
 
 #お宝が持つ状態付与のデータ
