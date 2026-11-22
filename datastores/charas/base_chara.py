@@ -1,0 +1,190 @@
+import copy
+from datastores.move_datastore import MoveDataStore as MStore
+from datastores.status_effect_datastore import StatusEffectDataStore as SEStore
+
+#--キャラクラス--#
+class BaseChara:
+    def __init__(self):
+        self.name = None				#キャラ名
+        self.stats = None				#能力値
+        self.final_stats = None			#計算済み能力値
+        self.modifiers = None			#能力変化
+        self.status_effects = None		#状態変化
+        self.moves = None				#技
+        self.encount_ms = ""			#エンカウントメッセージ
+        self.is_dead = False			#死亡フラグ
+        
+    #被ダメージ
+    def damage(self,value):
+        self.stats.hp = max(self.stats.hp - value,0)
+        if self.stats.hp == 0:
+            self.is_dead = True
+            
+    #体力回復
+    def recover_hp(self,value):
+        self.stats.hp = min(self.stats.hp + value,self.stats.max_hp)
+        
+    #STを消費
+    def use_st(self,value):
+        self.stats.st -= value
+        
+    #STを回復
+    def recover_st(self,value):
+        self.stats.st = min(self.stats.st + value,self.stats.max_st)
+        
+    #状態変化から能力変化値を計算
+    def calculate_modifier(self):
+        modi_list = [0,0,0,0,0]
+        for effect in self.status_effects.effects:
+            result = effect.get_modifier()
+            for i in range(5):
+                modi_list[i] += result[i]
+        for i in range(5):
+            modi_list[i] = min(max(modi_list[i],-5),5)
+        self.modifiers.set_all(modi_list)
+    
+    #最終能力値を計算
+    def calculate_stats(self):
+        stats_name = {"at","df","mg","md","sp"}
+        self.final_stats = BaseStats(self.stats.max_hp,self.stats.max_st,0,0,0,0,0)
+        for param in stats_name:
+            final_value = self.stats.get_state(param) * self.modifiers.get_rate(param)
+            self.final_stats.set_state(param,final_value)
+            
+    #-- ↓ 敵AI用 ↓ --#
+            
+    #行動AI
+    def action(self,player):
+        pass
+            
+    #スタミナ不足技を削除
+    def exclude_move_list(self,moves):
+        result = copy.deepcopy(moves)
+        for i in range(len(moves)):
+            if self.stats.st < self.moves.get_move(moves[i][0]).st:
+                result.remove(moves[i])
+        return result
+    
+    #-- ↓ キャラクターのデータクラス ↓ --#
+        
+#--ステータスクラス--#
+class BaseStats:
+    def __init__(self,hp,st,at,df,mg,md,sp):
+        self.hp = hp			#体力
+        self.max_hp = hp		#最大体力
+        self.st = st			#スタミナ
+        self.max_st = st		#最大スタミナ(基本10固定)
+        self.at = at			#攻撃
+        self.df = df			#防御
+        self.mg = mg			#魔法
+        self.md = md			#魔防
+        self.sp = sp			#俊敏
+                
+    #ステータス名を指定してステータス値を取得
+    def get_state(self,param):
+        if param not in {"hp","max_hp","st","max_st","at","df","mg","md","sp"}:
+            raise ValueError(f"取得できる変数名ではありません(引数{param})")
+        return getattr(self,param)
+    
+    #全てのステータスを取得
+    def get_all_state(self):
+        params = ("hp","max_hp","st","max_st","at","df","mg","md","sp")
+        return {p:getattr(self,p) for p in params}
+    
+    #ステータス名を指定してステータス値を設定
+    def set_state(self,param,value):
+        if param not in {"hp","max_hp","st","max_st","at","df","mg","md","sp"}:
+            raise ValueError("変更できる変数名ではありません(引数{param})")
+        setattr(self,param,value)
+        
+#--能力変化クラス--#
+class BaseModifiers:
+    def __init__(self):
+        self.rate = {		
+            -5:1/5 , -4:1/3 , -3:1/2 , -2:2/3 , -1:3/4 , 0:1 , 1:1.25 , 2:1.5 , 3:2 , 4:2.5 , 5:3
+            }				#変化倍率定義
+        self.at = 0			#攻撃
+        self.df = 0			#防御
+        self.mg = 0			#魔法
+        self.md = 0			#魔防
+        self.sp = 0			#俊敏
+        
+    #一括登録
+    def set_all(self,modi_list):
+        self.at,self.df,self.mg,self.md,self.sp = modi_list
+        
+    #ステータス名を指定して倍率を取得
+    def get_rate(self,param):
+        return self.rate[self.get_modi(param)]
+                
+    #ステータス名を指定して変化値を取得
+    def get_modi(self,param):
+        return getattr(self,param)
+        
+#--状態変化クラス--#
+class BaseStatusEffects:
+    def __init__(self,effects):
+        self.effects = effects
+        
+    #状態変化を付与
+    def add_effect(self,effect):
+        self.effects.append(effect)
+        
+    #特定の状態のレベルを上昇
+    def level_up(self,effect_class,lv=1):
+        for i in range(len(self.effects)):
+            if isinstance(self.effects[i],effect_class):
+                self.effects[i].level += lv
+                self.effects[i].level = min(self.effects[i].level,3)
+        
+    #特定の状態を持っているかを取得
+    def has_effect(self,effect_class=None,effect_name=None):
+        if effect_class is not None:
+            return any(isinstance(effect,effect_class) for effect in self.effects)
+        elif effect_name is not None:
+            return any(effect_name == effect.name for effect in self.effects)
+        
+    #所持している状態を取得
+    def get_effect(self,effect_class=None,effect_name=None):
+        if effect_class is not None:
+            for i in range(len(self.effects)):
+                if isinstance(self.effects[i],effect_class):
+                    return self.effects[i]
+        elif effect_name is not None:
+            for i in range(len(self.effects)):
+                if self.effects[i].name == effect_name:
+                    return self.effects[i]
+        
+    #状態のターン経過
+    def turn_check(self,source):
+        #解除する状態リスト
+        remove_effects = []
+        #所持している状態のターンを1減少
+        for i in range(len(self.effects)):
+            #発生元が異なる場合は無視
+            if self.effects[i].source != source:
+                continue
+            #残りターンを減らす
+            self.effects[i].reduce_turn()
+            turns_left = self.effects[i].get_turn()
+            #残りターンが0の場合、状態を解除
+            if turns_left is not None and turns_left <= 0:
+                remove_effects.append(self.effects[i])
+        for effect in remove_effects:
+            self.effects.remove(effect)
+        return remove_effects
+    
+#--技クラス--#
+class BaseMoves:
+    def __init__(self,moves):
+        self.moves = moves
+        
+    def get_move(self,move_name):
+        for move in self.moves:
+            if move.name == move_name:
+                return move
+        return None
+    
+    def add_move(self,move):
+        self.moves.append(move)
+

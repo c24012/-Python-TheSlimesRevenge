@@ -19,10 +19,11 @@ class BattleUI:
         self.show_panel(info,"戦闘",redo)
         
     #--ターン開始--#
-    def turn_start(self,is_player,redo=False):
+    def turn_start(self,is_player,battle_turn,redo=False):
         name = self.player.name if is_player else self.enemy.name
         texts = []
-        texts.append([3,text.center(f"{name}のターン！")])
+        texts.append([2,text.center(f"{battle_turn}ターン目")])
+        texts.append([4,text.center(f"{name}のターン！")])
         texts.append([7,text.text("(Enter)",head=40)])
         #改行を挿入
         info = text.place_strings_at_lines(texts,line_count=8)
@@ -82,7 +83,7 @@ class BattleUI:
         move_texts = [""]*9
         for i in range(9):
             if len(moves) > i:
-                move_texts[i] = (f"{i+1}:{text.tab(moves[i].name,f'TP{moves[i].tp}',width=15)}")
+                move_texts[i] = (f"{i+1}:{text.tab(moves[i].name,f'ST{moves[i].st}',width=15)}")
         max_page = len(self.player.moves.moves) // 9 + 1
                 
         texts = []
@@ -330,7 +331,7 @@ class BattleUI:
         texts = []
         texts.append([1,f" どの技を模倣する？"])
         for i in range(len(moves)):
-            texts.append([3+i,text.horiz_free([[f"{1+i}:{moves[i].name}",2],[f"消費TP {moves[i].tp}",16]])])
+            texts.append([3+i,text.horiz_free([[f"{1+i}:{moves[i].name}",2],[f"消費ST {moves[i].st}",16]])])
         texts.append([7,text.text("(*番号:詳細)",head=36)])
         #改行を挿入
         info = text.place_strings_at_lines(texts,line_count=8)
@@ -345,8 +346,11 @@ class BattleUI:
                                    f"HP{text.gage(enemy.stats.hp,enemy.stats.max_hp)}"])])
         texts.append([3,text.horiz_right([f"{player.stats.hp}/{player.stats.max_hp}",
                                     f"{enemy.stats.hp}/{enemy.stats.max_hp}"],head=22)])
-        texts.append([4,text.horiz([f"TP{text.gage(player.stats.tp,player.stats.max_tp)}",""])])
-        texts.append([5,text.horiz_right([f"{player.stats.tp}/{player.stats.max_tp}",""],head=22)])
+        
+        texts.append([4,text.horiz([f"ST{text.gage(player.stats.st,player.stats.max_st)}",
+                                   f"ST{text.gage(enemy.stats.st,enemy.stats.max_st)}"])])
+        texts.append([5,text.horiz_right([f"{player.stats.st}/{player.stats.max_st}",
+                                    f"{enemy.stats.st}/{enemy.stats.max_st}"],head=22)])
 
         #改行を挿入
         result = text.place_strings_at_lines(texts,line_count=7)

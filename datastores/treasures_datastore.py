@@ -1,4 +1,4 @@
-from treasures.floor_1 import RustedKnife,BrokenWand,DirtyCloth,LightStone,BraceletOfChains
+from .treasures.floor_1 import RustedKnife,BrokenWand,DirtyCloth,LightStone,BraceletOfChains
 
 class TreasuresDataStore:
     inst = {

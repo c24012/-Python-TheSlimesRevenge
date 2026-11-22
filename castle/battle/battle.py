@@ -9,6 +9,7 @@ class Battle:
         self.player = player
         self.enemy = enemy
         self.is_win = self.start()
+        self.battle_turn = 0
     
     def get_result(self):
         return self.is_win
@@ -16,8 +17,18 @@ class Battle:
     def start(self):
         #遭遇
         self.encount()
+
+        #所持中のお宝にバトルクラスを登録
+        self.player.treasures.set_battle_class(self)
+        #戦闘開始イベント呼び出し
+        self.player.treasures.on_start_battle()
+        
+        #戦闘ターン数初期化
+        self.battle_turn = 0
         
         while True:
+            #戦闘ターンカウント
+            self.battle_turn += 1
             
             #状態チェック
             self.status_effects_check(start=True)
@@ -41,8 +52,9 @@ class Battle:
             #状態チェック
             self.status_effects_check(start=False)
             
-            #プレイヤーのTPを回復する
-            self.player.recover_tp(1)
+            #お互いのSTを回復する
+            self.player.recover_st(1)
+            self.enemy.recover_st(1)
         
     #--遭遇--#
     def encount(self):
@@ -52,7 +64,15 @@ class Battle:
     #--プレイヤーの行動--#
     def player_turn(self):
         #プレイヤーターン開始ui
-        enter(self.ui.turn_start,args=[True])
+        enter(self.ui.turn_start,args=[True,self.battle_turn])
+        #状態変化の残りターン消費(発生元:プレイヤー)
+        remove_se = self.player.status_effects.turn_check(source="s")
+        if len(remove_se) > 0:
+            messages = []
+            for i in range(0,len(remove_se),3):
+                for effect in remove_se[i:i+3]:
+                    messages.append(f"{self.player.name}の{effect.name}の効果が消えた")
+                enter(self.ui.free,args=[messages])
         #行動開始イベント発火
         for effect in self.player.status_effects.effects:
             effect.on_action_start()
@@ -68,8 +88,8 @@ class Battle:
         #行動終了イベント発火
         for effect in self.player.status_effects.effects:
             effect.on_action_end()
-        #状態変化の残りターン消費
-        remove_se = self.player.status_effects.turn_check()
+        #状態変化の残りターン消費(発生元:敵)
+        remove_se = self.player.status_effects.turn_check(source="o")
         if len(remove_se) > 0:
             messages = []
             for i in range(0,len(remove_se),3):
@@ -84,23 +104,35 @@ class Battle:
     #--敵の行動--#
     def enemy_turn(self):
         #敵ターン開始ui
-        enter(self.ui.turn_start,args=[False])
+        enter(self.ui.turn_start,args=[False,self.battle_turn])
         #行動開始イベント発火
         for effect in self.enemy.status_effects.effects:
             effect.on_action_start()
         #状態変化による能力変化の更新
         self.enemy.calculate_modifier()
+        #状態変化の残りターン消費(発生元:敵)
+        remove_se = self.enemy.status_effects.turn_check(source="s")
+        if len(remove_se) > 0:
+            messages = []
+            for i in range(0,len(remove_se),3):
+                for effect in remove_se[i:i+3]:
+                    messages.append(f"{self.enemy.name}の{effect.name}の効果が消えた")
+                enter(self.ui.free,args=[messages])
         #行動
         turn = 1
         while turn > 0:
+            #技を選択(行動AI)
             move = self.enemy.action(self.player)
+            #発動する技分のスタミナを消費
+            self.enemy.use_st(move.st)
+            #選択した技を発動
             self.mp.use_a_move(move,is_player=False)
             turn -= 1
         #行動終了イベント発火
         for effect in self.enemy.status_effects.effects:
             effect.on_action_end()
-        #状態変化の残りターン消費
-        remove_se = self.enemy.status_effects.turn_check()
+        #状態変化の残りターン消費(発生元:プレイヤー)
+        remove_se = self.enemy.status_effects.turn_check(source="o")
         if len(remove_se) > 0:
             messages = []
             for i in range(0,len(remove_se),3):
@@ -147,7 +179,7 @@ class Battle:
         moves = []
         for move in self.enemy.moves.moves:
             #模倣できない技を除外
-            if move.tp is None:
+            if move.enemy_only:
                 continue
             #プレイヤーがすでに覚えている技も除外
             elif self.player.moves.get_move(move.name) is not None:
@@ -222,12 +254,12 @@ class Battle:
             # 1∼9:各技を繰り出す
             if 1 <= result <= 9 and isinstance(result,int):
                 move = self.player.moves.moves[page*9 + result - 1]
-                #TPが足りていたら発動
-                if move.tp <= self.player.stats.tp:
-                    self.player.use_tp(move.tp)
+                #STが足りていたら発動
+                if move.st <= self.player.stats.st:
+                    self.player.use_st(move.st)
                     self.mp.use_a_move(move,is_player=True)
                 else:
-                    enter(self.ui.free,args=[["TPがなりない！"]])
+                    enter(self.ui.free,args=[["STが足りない！"]])
                     self.move_list(page)
             # 0:行動選択へ
             elif result == 0:

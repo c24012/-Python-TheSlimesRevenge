@@ -42,13 +42,18 @@ class MoveProcessor:
             else:
                 is_hit = self.special_move()
                 
+            #命中後処理
             if is_hit:
+                #技の状態変化付与
                 if move.effects is not None:
                     for _effect in move.effects:
                         self.give_effects(_effect)
-                        
-                if move.recovery is not None:
-                    self.recovey_hp(move.recovery[0],move.recovery[1])
+                #体力回復
+                if move.rec_hp is not None:
+                    self.recovey_hp(move.rec_hp[0],move.rec_hp[1])
+                #スタミナ回復
+                if move.rec_st is not None:
+                    self.recovey_st(move.rec_st[0],move.rec_st[1])
                 
         #uiを表示
         enter(self.ui.free,args=[self.message])
@@ -59,24 +64,29 @@ class MoveProcessor:
         
         #技を外す 確率計算
         if prob(100 - self.move.acc):
-            self.message.append(f"{self.target.name}に当たらなかった！")
+            self.message.append(f"{self.target.name}に当たらなかった")
             return False
         
-        #盲目状態 確率計算(30%で外れる)
+        #盲目状態 確率計算(30%で技を外す)
         if self.user.status_effects.has_effect(effect_name="盲目") and prob(30):
-            self.message.append(f"{self.target.name}に当たらなかった！")
+            self.message.append(f"{self.target.name}に当たらなかった")
             return False
         
         #俊敏差による回避 確率計算
         if prob(min((self.target.stats.sp - self.user.stats.sp)/10 +self.target.stats.sp/self.user.stats.sp,90))	:
-            self.message.append(f"{self.target.name}は回避した！")
+            self.message.append(f"{self.target.name}は回避した")
             return False
+        
+        #硬化状態 ダメージ減衰
+        if self.user.status_effects.has_effect(effect_name="硬化"):
+            if damage >= 0:
+                damage = max(int(damage * 0.3), 1)
         
         #技が命中
         if damage <= 0:
-            damage_text = f"{self.target.name}はダメージを受けていない！"
+            damage_text = f"{self.target.name}はダメージを受けていない"
         else:
-            damage_text = f"{self.target.name}は{damage}のダメージ！"
+            damage_text = f"{self.target.name}は{damage}のダメージ"
             self.target.damage(damage)
         self.message.append(damage_text)
             
@@ -85,15 +95,20 @@ class MoveProcessor:
     #魔法技
     def magical_move(self):
         damage = self.calculate_damage(self.user.final_stats.mg,self.target.final_stats.md)
+        
+        #硬化状態 ダメージ減衰
+        if self.user.status_effects.has_effect(effect_name="硬化"):
+            if damage >= 0:
+                damage = max(int(damage * 0.3), 1)
+        
         #技が命中
         if not any(avoids):
             if damage <= 0:
-                damage_text = "{self.target.name}はダメージを受けていない！"
+                damage_text = "{self.target.name}はダメージを受けていない"
             else:
-                damage_text = f"{self.target.name}は{damage}のダメージ！"
+                damage_text = f"{self.target.name}は{damage}のダメージ"
                 self.target.damage(damage)
         self.message.append(damage_text)
-                
         return True
     
     #特殊技
@@ -112,7 +127,12 @@ class MoveProcessor:
         return int(damage)
         
     #状態変化を付与
-    def give_effects(self,effect_data):
+    def give_effects(self,effect_data,is_player=None):
+        #外部からUserとTargetを指定する場合
+        if is_player is not None:
+            self.user = self.player if is_player else self.enemy
+            self.target = self.enemy if is_player else self.player
+        
         targets = []
         if effect_data.target == 's':
             targets = [self.user]
@@ -121,12 +141,16 @@ class MoveProcessor:
         else:
             targets = [self.user,self.target]
         
+        print(targets)
         for _target in targets:
             #失敗 確率計算
             if prob(100 - effect_data.acc):
                 continue
             
+            #生成して発生元を登録
             _effect = effect_data.instance_effect()
+            source = "s" if _target == self.user else "o"
+            _effect.set_source(source)
              
             #すでに付与されている場合
             if _target.status_effects.has_effect(effect_data.effect):
@@ -134,20 +158,20 @@ class MoveProcessor:
                 if _effect.level is not None:
                     #レベルが最大ではない時は強化
                     if _target.status_effects.get_effect(effect_data.effect).level < 3:
-                        self.message.append(f"{_target.name}の{_effect.name}状態が強化された！")
+                        self.message.append(f"{_target.name}の{_effect.name}状態が強化された")
                         _target.status_effects.level_up(effect_data.effect,_effect.level)
                     #レベル最大時は何も起こらない
                     else:
-                        self.message.append(f"{_effect.name}状態はこれ以上強化できない！")
+                        self.message.append(f"{_effect.name}状態はこれ以上強化できない")
                 #残りターンのみの要素を持つ場合
                 elif _effect.turn is not None:
-                    self.message.append(f"{_target.name}はすでに{_effect.name}状態になっている！")
+                    self.message.append(f"{_target.name}はすでに{_effect.name}状態になっている")
                 #状態定義ミス
                 else:
                     raise ValueError(f"ターン,レベル共にNoneになっています\n状態名:{_effect.name}")
             #まだ付与されていない場合
             else:
-                self.message.append(f"{_target.name}は{_effect.name}状態になった！")
+                self.message.append(f"{_target.name}は{_effect.name}状態になった")
                 _target.status_effects.add_effect(_effect)
     
     #HP回復
@@ -162,8 +186,23 @@ class MoveProcessor:
             
         for _target in targets:
             #HP回復
-            self.message.append(f"{_target.name}のHPは{value}回復した！")
+            self.message.append(f"{_target.name}のHPは{value}回復した")
             _target.recover_hp(value)
+    
+    #ST回復
+    def recovey_st(self,value,target):
+        targets = []
+        if target == 's':
+            targets = [self.user]
+        elif target == 'o':
+            targets = [self.target]
+        else:
+            targets = [self.user,self.target]
+            
+        for _target in targets:
+            #ST回復
+            self.message.append(f"{_target.name}のSTは{value}回復した")
+            _target.recover_st(value)
     
     
     

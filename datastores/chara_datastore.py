@@ -1,5 +1,5 @@
-from charas.slime import Slime
-from charas.goblin import Goblin
+from .charas.slime import Slime
+from .charas.goblin import Goblin
 
 class CharaDataStore:
     inst = {
