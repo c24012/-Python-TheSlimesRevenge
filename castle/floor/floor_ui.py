@@ -74,16 +74,17 @@ class FloorUI:
         
     #--技詳細--#
     def move_info(self,move,redo=False):
-        power = f"{move.power}" if move.category != "特殊" else " -"
-        acc = f"{move.acc}" if move.category == "物理" else " -"
+        power = f"{move.power}" if move.category != "special" else " -"
+        acc = f"{move.acc}" if move.category == "physical" else " -"
+        category_text = {"physical":"物理","magical":"魔法","special":"特殊"}
         
         texts = []
         texts.append([1,
-            text.horiz_free([[f"[ {move.name} ]",1],[f"{move.category}",22],
+            text.horiz_free([[f"[ {move.name} ]",1],[f"{category_text[move.category]}",22],
                                             [f"威力:{power}",28],[f"命中:{acc}",38]])])
         
         for i in range(len(move.info)):
-            texts.append([3+i,text.text(move.info[i],head=2)])
+            texts.append([3+i,text.text(move.info[i],head=3)])
             
         if move.effects is not None:
             effect_texts = ""
@@ -176,7 +177,7 @@ class FloorUI:
         texts.append([1,text.text(f" [ {treasure.name} ]")])
         
         for i in range(len(treasure.info)):
-            texts.append([3+i,text.text(treasure.info[i],head=2)])
+            texts.append([3+i,text.text(treasure.info[i],head=3)])
             
         if treasure.effects is not None:
             effect_texts = ""

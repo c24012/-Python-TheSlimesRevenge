@@ -1,5 +1,4 @@
 from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
-from .base_chara import MStore,SEStore
 from datastores.treasures_datastore import TreasuresDataStore as TStore
 
 #--キャラクラス--#
@@ -41,38 +40,38 @@ class Stats(BaseStats):
 
 #--能力変化--#
 class Modifiers(BaseModifiers):
-    def __init__(self):
-        super().__init__()
-        self.at = 0
-        self.df = 0
-        self.mg = 0
-        self.md = 0
-        self.sp = 0
+    pass
 
 #--状態変化--#
 class StatusEffects(BaseStatusEffects):
-    def __init__(self):
-        super().__init__([])
+    pass
 
 #--技--#
 class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
-            MStore.inst["攻撃"](),
-            MStore.inst["防御"](),
-            MStore.inst["休憩"]()
+            "attack",       #攻撃
+            "guard",        #防御
+            "rest"          #休憩
             ])
         
 #--お宝--#
 class Treasures:
     def __init__(self):
-        self.treasures = [
-            TStore.inst["錆びたナイフ"](),
-            TStore.inst["折れかけの杖"](),
-            TStore.inst["汚れた布"](),
-            TStore.inst["軽い石"](),
-            TStore.inst["連鎖の輪"](),
+        treasure_names = [
+            "rusted_knife",        #錆びたナイフ
+            "broken_wand",         #折れかけの杖
+            "dirty_cloth",         #汚れた布
+            "light_stone",         #軽い石
+            "bracelet_of_chains",  #連鎖の輪
             ]
+        self.init_inst(treasure_names)
+
+    def init_inst(self, treasure_names):
+        store = TStore()
+        self.treasures = []
+        for name in treasure_names:
+            self.treasures.append(store.inst(name))
         
     def add_treasure(self,treasure):
         self.treasures.append(treasure)

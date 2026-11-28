@@ -35,9 +35,9 @@ class MoveProcessor:
         for _target in targets:
             self.target = _target
             is_hit = False
-            if move.category == "物理":
+            if move.category == "physical":
                 is_hit = self.physical_move()
-            elif move.category == "魔法":
+            elif move.category == "magical":
                 is_hit = self.magical_move()
             else:
                 is_hit = self.special_move()

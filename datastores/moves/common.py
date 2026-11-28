@@ -6,7 +6,7 @@ class Attack(BaseMove):
     def __init__(self):
         super().__init__(
             name = "攻撃",
-            category = "物理",
+            category = "physical",
             target = 'o',
             power = 100,
             acc = 100,
@@ -19,7 +19,7 @@ class Rest(BaseMove):
     def __init__(self):
         super().__init__(
             name = "休憩",
-            category = "特殊",
+            category = "special",
             target = 's',
             rec_st = [5,'s'],
             enemy_only = True
@@ -31,6 +31,6 @@ class Observe(BaseMove):
     def __init__(self):
         super().__init__(
             name = "様子を見る",
-            category = "特殊",
+            category = "special",
             enemy_only = True
             )

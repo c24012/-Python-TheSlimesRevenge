@@ -1,0 +1,27 @@
+{
+    "floor_1": {
+        "enemy_table": [
+            "goblin",
+            "goblin",
+            "goblin"
+        ],
+        "treasure_table": [
+            {
+                "item": "potion",
+                "rarity": "common"
+            },
+            {
+                "item": "gold_coin",
+                "rarity": "rare"
+            },
+            {
+                "item": "sword",
+                "rarity": "superrare"
+            }
+        ],
+        "event_table": [
+            "event_1",
+            "event_2"
+        ]
+    }
+}

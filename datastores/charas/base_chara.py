@@ -123,7 +123,7 @@ class BaseModifiers:
         
 #--状態変化クラス--#
 class BaseStatusEffects:
-    def __init__(self,effects):
+    def __init__(self,effects=[]):
         self.effects = effects
         
     #状態変化を付与
@@ -176,7 +176,13 @@ class BaseStatusEffects:
     
 #--技クラス--#
 class BaseMoves:
-    def __init__(self,moves):
+    def __init__(self,move_names):
+        store = MStore()
+        moves = []
+        for name in move_names:
+            move = store.inst(move_name=name)
+            if move is not None:
+                moves.append(move)
         self.moves = moves
         
     def get_move(self,move_name):

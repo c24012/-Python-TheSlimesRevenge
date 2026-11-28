@@ -32,7 +32,7 @@ class BaseTreasure:
 #お宝が持つ状態付与のデータ
 class StatusEffectForTreasure:
     def __init__(self,name,target,acc=100,turn=None,level=None):
-        self.effect = StatusEffect.inst[name]
+        self.effect = StatusEffect().get_effect(name)
         self.target = target
         self.acc = acc
         self.turn = turn

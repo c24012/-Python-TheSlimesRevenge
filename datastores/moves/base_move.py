@@ -1,9 +1,9 @@
-from datastores.status_effect_datastore import StatusEffectDataStore as StatusEffect
+from datastores.status_effect_datastore import StatusEffectDataStore as SEStore
 
 class BaseMove:
     def __init__(self,name,category,power=None,acc=None,effects=None,target='o',st=0,rec_hp=None,rec_st=None,enemy_only=False):
         
-        if category not in ["物理","魔法","特殊"]:
+        if category not in ["physical","magical","special"]:
             raise Exception("想定外の攻撃タイプです")
         
         self.name = name			#技名
@@ -29,7 +29,7 @@ class BaseMove:
 #技が持つ状態付与のデータ
 class StatusEffectForMove:
     def __init__(self,name,target,acc=100,turn=None,level=None):
-        self.effect = StatusEffect.inst[name]
+        self.effect = SEStore().get_effect(name)
         self.target = target
         self.acc = acc
         self.turn = turn

@@ -6,7 +6,7 @@ class Pounce(BaseMove):
     def __init__(self):
         super().__init__(
             name = "飛びかかる",
-            category = "物理",
+            category = "physical",
             power = 130,
             acc = 80,
             st = 3,
@@ -19,12 +19,12 @@ class SandAttack(BaseMove):
     def __init__(self):
         super().__init__(
             name = "砂かけ",
-            category = "物理",
+            category = "physical",
             power = 30,
             acc = 100,
             st = 2,
             target = 'o',
-            effects = [SEFM(name="盲目",target='o',acc=70,turn=3)]
+            effects = [SEFM(name="blindness",target='o',acc=70,turn=3)]
             )
         self.set_info("確率70%で相手に 盲目(3ターン) を付与する")
         
@@ -33,9 +33,9 @@ class Taunt(BaseMove):
     def __init__(self):
         super().__init__(
             name = "挑発",
-            category = "特殊",
+            category = "special",
             st = 2,
-            effects = [SEFM(name="怒り",target='o',turn=3)]
+            effects = [SEFM(name="enraged",target='o',turn=3)]
             )
         self.set_info("相手に 怒り(3ターン) を付与する")
         

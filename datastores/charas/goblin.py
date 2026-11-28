@@ -1,37 +1,37 @@
 from common import choice
 from .base_chara import BaseChara,BaseStats,BaseModifiers,BaseStatusEffects,BaseMoves
-from .base_chara import MStore,SEStore
 
 #--キャラクラス--#
 class Goblin(BaseChara):
     def __init__(self):
         super().__init__()
         self.name = "ゴブリン"						#キャラ名
-        self.stats = Stats()						#能力値
+        self.stats = Stats()					    #能力値
         self.modifiers = Modifiers()				#能力変化
         self.status_effects = StatusEffects()		#状態変化
         self.moves = Moves()						#技
-        self.encount_ms = "こん棒を振り回している"	#エンカウントメッセージ
+        self.encount_ms = "こん棒を振り回している"	 #エンカウントメッセージ
         
     #行動AI
     def action(self,player):
-        """攻撃, 飛びかかる, 砂かけ, 挑発, 様子を見る,休憩"""
-        moves = [["攻撃",2],["飛びかかる",1],["様子を見る",1]]
+        """ attack:攻撃, pounce:飛びかかる, sand_attack:砂かけ, taunt:挑発, observe:様子を見る, rest:休憩 """
+        
+        moves = [["attack",2],["pounce",1],["observe",1]]
         
         #プレイヤーが怒り状態じゃなければ挑発
         if not player.status_effects.has_effect(effect_name="怒り"):
-            moves.append(["挑発",3])
+            moves.append(["taunt",3])
         #プレイヤーが盲目状態じゃなければ砂かけ
         if not player.status_effects.has_effect(effect_name="盲目"):
-            moves.append(["砂かけ",3])
+            moves.append(["sand_attack",3])
             
         #残り体力が1/3以下の場合、飛びかかるか様子を見るの2択
         if self.stats.hp <= self.stats.max_hp // 3:
-            moves = [["飛びかかる",2],["様子を見る",1]]
+            moves = [["pounce",2],["observe",1]]
             
         #STが半分以下の場合,休憩を追加
         if self.stats.st <= self.stats.max_st // 2:
-            moves.append(["休憩",1])
+            moves.append(["rest",1])
         
         #ST不足の技は除外
         moves = self.exclude_move_list(moves)
@@ -54,27 +54,20 @@ class Stats(BaseStats):
 
 #--能力変化--#
 class Modifiers(BaseModifiers):
-    def __init__(self):
-        super().__init__()
-        self.at = 0
-        self.df = 0
-        self.mg = 0
-        self.md = 0
-        self.sp = 0
+    pass
 
 #--状態変化--#
 class StatusEffects(BaseStatusEffects):
-    def __init__(self):
-        super().__init__([])
+    pass
 
 #--技--#
 class Moves(BaseMoves):
     def __init__(self):
         super().__init__([
-            MStore.inst["攻撃"](),
-            MStore.inst["飛びかかる"](),
-            MStore.inst["砂かけ"](),
-            MStore.inst["挑発"](),
-            MStore.inst["様子を見る"](),
-            MStore.inst["休憩"](),
+            "attack",          #攻撃
+            "pounce",          #飛びかかる
+            "sand_attack",     #砂かけ
+            "taunt",           #挑発
+            "observe",         #様子を見る
+            "rest"             #休憩
             ])

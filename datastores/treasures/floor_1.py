@@ -43,7 +43,7 @@ class BraceletOfChains(BaseTreasure):
     def __init__(self):
         super().__init__(
             name = "連鎖の輪",
-            effects = [SEFT(name="盲目",target='o',acc=100,turn=3)]
+            effects = [SEFT(name="blindness",target='o',acc=100,turn=3)]
             )
         self.set_info("戦闘開始時 盲目(ターン3) を相手に付与")
     #--戦闘開始イベント--#
